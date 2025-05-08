@@ -1,28 +1,48 @@
-# Analiza Emoțiilor în Text
+# Analiza Emoțiilor în Text folosind NLP
 
-Această aplicație permite analiza emoțiilor prezente într-un text folosind modele de procesare a limbajului natural (NLP).
+Această aplicație oferă o analiză complexă a emoțiilor din text, combinând puterea analizei de sentiment VADER cu detectarea detaliată a emoțiilor prin DistilRoBERTa. Proiectul este conceput pentru a oferi o înțelegere profundă a conținutului emoțional din text, fiind util atât pentru analiza feedback-ului utilizatorilor, cât și pentru cercetare în domeniul procesării limbajului natural.
 
-## Funcționalități
+## Caracteristici
 
-- Analiză emoțională a textului introdus direct
-- Analiză emoțională a textului din fișiere încărcate
-- Vizualizare a scorurilor emoționale
-- Interfață web intuitivă și ușor de folosit
+- **Analiză Duală**: Combină VADER pentru analiza de sentiment și DistilRoBERTa pentru detectarea detaliată a emoțiilor
+- **Analiză în Timp Real**: Oferă analiză instantanee pentru orice text introdus
+- **Analiză Vizuală**: 
+  - Indicator de sentiment pentru sentimentul general
+  - Roata emoțiilor pentru distribuția detaliată
+  - Analiză comparativă între modele
+  - Detalii despre scoruri
+- **Interfață Prietenoasă**: Interfață Streamlit curată și intuitivă
+
+## Tehnologii Folosite
+
+- **Frontend**: Streamlit
+- **Modele NLP**: 
+  - VADER (Valence Aware Dictionary and sEntiment Reasoner)
+  - DistilRoBERTa (emotion-english-distilroberta-base)
+- **Vizualizare**: Plotly
+- **Dependențe**:
+  - streamlit==1.32.0
+  - transformers==4.38.2
+  - torch==2.2.1
+  - pandas==2.2.1
+  - numpy==1.26.4
+  - scikit-learn==1.4.1
+  - plotly==5.19.0
+  - nltk==3.8.1
+  - vaderSentiment==3.3.2
 
 ## Instalare
 
 1. Clonează repository-ul:
 ```bash
-git clone [URL_REPOSITORY]
+git clone https://github.com/yourusername/NLP-Emotion-Analysis.git
 cd NLP-Emotion-Analysis
 ```
 
-2. Creează un mediu virtual și activează-l:
+2. Creează și activează un mediu virtual:
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Pentru Linux/Mac
-# sau
-.venv\Scripts\activate  # Pentru Windows
+source .venv/bin/activate  # Pentru Windows: .venv\Scripts\activate
 ```
 
 3. Instalează dependențele:
@@ -37,41 +57,44 @@ pip install -r requirements.txt
 streamlit run app/main.py
 ```
 
-2. Deschide browser-ul la adresa indicată (de obicei http://localhost:8501)
+2. Deschide browser-ul la adresa locală furnizată (de obicei http://localhost:8501)
 
-3. Alege metoda de introducere a textului (direct sau fișier)
+3. Introdu textul în zona de input și apasă "Analyze Text" pentru a obține:
+   - Emoția dominantă
+   - Intensitatea emoției
+   - Detalii despre emoții
+   - Reprezentări vizuale ale analizei
 
-4. Analizează textul și vezi rezultatele
-
-## Tehnologii utilizate
-
-- Python
-- Streamlit
-- Transformers (Hugging Face)
-- Plotly
-- PyTorch
-
-## Structura proiectului
+## Structura Proiectului
 
 ```
 NLP-Emotion-Analysis/
 ├── app/
-│   ├── main.py           # Aplicația Streamlit
-│   ├── model.py          # Logica modelului
-│   └── utils.py          # Funcții utilitare
-├── data/
-│   ├── raw/             # Date neprelucrate
-│   └── processed/       # Date prelucrate
-├── models/              # Modele salvate
-├── notebooks/           # Jupyter notebooks pentru experimente
-├── requirements.txt     # Dependențe
-└── README.md           # Documentație
+│   ├── core/
+│   │   └── analyzer.py      # Logica principală de analiză
+│   ├── utils/
+│   │   ├── config.py        # Setări de configurare
+│   │   └── visualizations.py # Utilități de vizualizare
+│   └── main.py             # Fișierul principal al aplicației
+├── requirements.txt        # Dependențe proiect
+└── README.md              # Documentație proiect
 ```
 
-## Contribuții
+## Cum Funcționează
 
-Contribuțiile sunt binevenite! Te rugăm să creezi un pull request pentru orice îmbunătățire.
+1. **Introducere Text**: Utilizatorii introduc textul prin interfața Streamlit
+2. **Proces de Analiză**:
+   - VADER analizează sentimentul (pozitiv, negativ, neutru)
+   - DistilRoBERTa detectează emoțiile specifice
+3. **Afișare Rezultate**:
+   - Metricile arată emoția dominantă și intensitatea
+   - Vizualizările oferă o înțelegere intuitivă
+   - Analiza comparativă arată diferențele dintre modele
 
-## Licență
+## Contribuitori
 
-Acest proiect este licențiat sub MIT License. 
+## Resurse
+
+- VADER Sentiment Analysis: [Repository GitHub](https://github.com/cjhutto/vaderSentiment)
+- Modelul DistilRoBERTa: [Hugging Face](https://huggingface.co/j-hartmann/emotion-english-distilroberta-base)
+- Streamlit: [Documentație](https://docs.streamlit.io/) 
