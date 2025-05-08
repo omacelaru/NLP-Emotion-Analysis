@@ -33,9 +33,11 @@ Această aplicație oferă o analiză complexă a emoțiilor din text, combinân
 
 ## Instalare
 
+### Metoda 1: Instalare Locală
+
 1. Clonează repository-ul:
 ```bash
-git clone https://github.com/yourusername/NLP-Emotion-Analysis.git
+git clone https://github.com/omacelaru/NLP-Emotion-Analysis.git
 cd NLP-Emotion-Analysis
 ```
 
@@ -50,12 +52,31 @@ source .venv/bin/activate  # Pentru Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### Metoda 2: Folosind Docker
+
+1. Asigură-te că ai Docker instalat pe sistemul tău
+
+2. Clonează repository-ul:
+```bash
+git clone https://github.com/omacelaru/NLP-Emotion-Analysis.git
+cd NLP-Emotion-Analysis
+```
+
+3. Construiește imaginea Docker:
+```bash
+docker build -t nlp-emotion-analysis .
+```
+
+4. Rulează containerul:
+```bash
+docker run -p 8501:8501 nlp-emotion-analysis
+```
+
 ## Utilizare
 
 1. Pornește aplicația:
-```bash
-streamlit run app/main.py
-```
+   - Pentru instalarea locală: `streamlit run app/main.py`
+   - Pentru Docker: aplicația va porni automat după rularea containerului
 
 2. Deschide browser-ul la adresa locală furnizată (de obicei http://localhost:8501)
 
@@ -77,6 +98,7 @@ NLP-Emotion-Analysis/
 │   │   └── visualizations.py # Utilități de vizualizare
 │   └── main.py             # Fișierul principal al aplicației
 ├── requirements.txt        # Dependențe proiect
+├── Dockerfile             # Configurare Docker
 └── README.md              # Documentație proiect
 ```
 
