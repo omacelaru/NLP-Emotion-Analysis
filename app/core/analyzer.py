@@ -9,6 +9,22 @@ from app.config import MODEL_CONFIGS, EMOTION_LABELS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Romanian emotion label mapping
+RO_EMOTION_MAPPING = {
+    'LABEL_0': 'bucurie',
+    'LABEL_1': 'tristete',
+    'LABEL_2': 'furie',
+    'LABEL_3': 'frica',
+    'LABEL_4': 'surpriza',
+    'LABEL_5': 'neutru',
+    'LABEL_6': 'iubire',
+    'LABEL_7': 'dezgust',
+    'LABEL_8': 'optimism',
+    'LABEL_9': 'pesimism',
+    'LABEL_10': 'incredere',
+    'LABEL_11': 'anticipare'
+}
+
 class EmotionAnalyzer:
     """Class for analyzing emotions in text using both VADER and DistilRoBERTa."""
 
@@ -104,19 +120,29 @@ class EmotionAnalyzer:
             # Get predictions from DistilRoBERTa
             predictions = model(text)[0]
             
-            # Sort predictions by score
-            sorted_predictions = sorted(predictions, key=lambda x: x['score'], reverse=True)
+            # Create a complete emotion dictionary with all possible emotions
+            emotion_scores = {}
+            if language == 'ro':
+                # Initialize all Romanian emotions with 0
+                for emotion in EMOTION_LABELS['ro'].values():
+                    emotion_scores[emotion] = 0.0
+                
+                # Update with actual predictions
+                for pred in predictions:
+                    emotion = RO_EMOTION_MAPPING.get(pred['label'], pred['label'])
+                    emotion_scores[emotion] = pred['score']
+            else:
+                # For English, use the predictions directly
+                emotion_scores = {pred['label']: pred['score'] for pred in predictions}
+            
+            # Sort emotions by score
+            sorted_emotions = sorted(emotion_scores.items(), key=lambda x: x[1], reverse=True)
             
             # Get dominant emotion
-            dominant_emotion = sorted_predictions[0]['label']
+            dominant_emotion = sorted_emotions[0][0]
             
             # Calculate intensity (using the highest score)
-            intensity = sorted_predictions[0]['score']
-            
-            # Create detailed emotion scores
-            emotion_scores = {
-                pred['label']: pred['score'] for pred in sorted_predictions
-            }
+            intensity = sorted_emotions[0][1]
             
             return {
                 'model': MODEL_CONFIGS[f'distilroberta_{language}']['name'],
@@ -124,7 +150,7 @@ class EmotionAnalyzer:
                     'scores': emotion_scores,
                     'dominant_emotion': dominant_emotion,
                     'intensity': intensity,
-                    'analysis': self._get_distilroberta_analysis(sorted_predictions, language)
+                    'analysis': self._get_distilroberta_analysis(sorted_emotions, language)
                 }
             }
         except Exception as e:
@@ -146,27 +172,27 @@ class EmotionAnalyzer:
         else:
             return "Neutral sentiment with balanced emotions"
 
-    def _get_distilroberta_analysis(self, predictions: List[Dict], language: str) -> str:
+    def _get_distilroberta_analysis(self, sorted_emotions: List[tuple], language: str) -> str:
         """Generate a detailed analysis of the emotions detected by DistilRoBERTa."""
-        top_emotions = predictions[:3]  # Get top 3 emotions
+        top_emotions = sorted_emotions[:3]  # Get top 3 emotions
         
         if language == 'en':
-            analysis = f"Primary emotion: {top_emotions[0]['label']} "
-            analysis += f"({top_emotions[0]['score']:.2f})"
+            analysis = f"Primary emotion: {top_emotions[0][0]} "
+            analysis += f"({top_emotions[0][1]:.2f})"
             
             if len(top_emotions) > 1:
                 secondary_emotions = []
-                for e in top_emotions[1:]:
-                    secondary_emotions.append(f"{e['label']} ({e['score']:.2f})")
+                for emotion, score in top_emotions[1:]:
+                    secondary_emotions.append(f"{emotion} ({score:.2f})")
                 analysis += f"\nSecondary emotions: {', '.join(secondary_emotions)}"
         else:
-            analysis = f"Emoție principală: {top_emotions[0]['label']} "
-            analysis += f"({top_emotions[0]['score']:.2f})"
+            analysis = f"Emoție principală: {top_emotions[0][0]} "
+            analysis += f"({top_emotions[0][1]:.2f})"
             
             if len(top_emotions) > 1:
                 secondary_emotions = []
-                for e in top_emotions[1:]:
-                    secondary_emotions.append(f"{e['label']} ({e['score']:.2f})")
+                for emotion, score in top_emotions[1:]:
+                    secondary_emotions.append(f"{emotion} ({score:.2f})")
                 analysis += f"\nEmoții secundare: {', '.join(secondary_emotions)}"
         
         return analysis
