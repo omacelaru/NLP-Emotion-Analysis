@@ -3,7 +3,7 @@ import logging
 from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from app.utils.config import MODEL_CONFIGS, EMOTION_LABELS
+from app.config import MODEL_CONFIGS, EMOTION_LABELS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,34 +18,43 @@ class EmotionAnalyzer:
             # Initialize VADER
             self.vader = SentimentIntensityAnalyzer()
             
-            # Initialize DistilRoBERTa
-            model_id = MODEL_CONFIGS['distilroberta']['model_id']
-            self.distilroberta = pipeline(
+            # Initialize DistilRoBERTa models for both languages
+            self.distilroberta_en = pipeline(
                 "text-classification",
-                model=model_id,
+                model=MODEL_CONFIGS['distilroberta_en']['model_id'],
                 return_all_scores=True
             )
-            logger.info("Successfully initialized both emotion analyzers")
+            
+            self.distilroberta_ro = pipeline(
+                "text-classification",
+                model=MODEL_CONFIGS['distilroberta_ro']['model_id'],
+                return_all_scores=True
+            )
+            
+            logger.info("Successfully initialized all emotion analyzers")
         except Exception as e:
             logger.error(f"Error initializing emotion analyzers: {str(e)}")
             raise
 
-    def analyze_text(self, text: str) -> Dict:
+    def analyze_text(self, text: str, language: str = 'en') -> Dict:
         """Analyze text using both VADER and DistilRoBERTa models."""
         if not text or not isinstance(text, str):
             raise ValueError("Input text must be a non-empty string")
 
         try:
-            # Get VADER analysis
-            vader_result = self._analyze_vader(text)
+            results = {}
             
-            # Get DistilRoBERTa analysis
-            distil_result = self._analyze_distilroberta(text)
+            # Get VADER analysis (only for English)
+            if language == 'en':
+                results['vader'] = self._analyze_vader(text)
             
-            return {
-                'vader': vader_result,
-                'distilroberta': distil_result
-            }
+            # Get DistilRoBERTa analysis based on language
+            if language == 'en':
+                results['distilroberta'] = self._analyze_distilroberta(text, self.distilroberta_en, 'en')
+            else:
+                results['distilroberta'] = self._analyze_distilroberta(text, self.distilroberta_ro, 'ro')
+            
+            return results
         except Exception as e:
             logger.error(f"Error analyzing text: {str(e)}")
             raise
@@ -89,11 +98,11 @@ class EmotionAnalyzer:
             logger.error(f"Error in VADER analysis: {str(e)}")
             raise
 
-    def _analyze_distilroberta(self, text: str) -> Dict:
+    def _analyze_distilroberta(self, text: str, model, language: str) -> Dict:
         """Analyze text using DistilRoBERTa model."""
         try:
             # Get predictions from DistilRoBERTa
-            predictions = self.distilroberta(text)[0]
+            predictions = model(text)[0]
             
             # Sort predictions by score
             sorted_predictions = sorted(predictions, key=lambda x: x['score'], reverse=True)
@@ -110,12 +119,12 @@ class EmotionAnalyzer:
             }
             
             return {
-                'model': MODEL_CONFIGS['distilroberta']['name'],
+                'model': MODEL_CONFIGS[f'distilroberta_{language}']['name'],
                 'emotions': {
                     'scores': emotion_scores,
                     'dominant_emotion': dominant_emotion,
                     'intensity': intensity,
-                    'analysis': self._get_distilroberta_analysis(sorted_predictions)
+                    'analysis': self._get_distilroberta_analysis(sorted_predictions, language)
                 }
             }
         except Exception as e:
@@ -137,16 +146,27 @@ class EmotionAnalyzer:
         else:
             return "Neutral sentiment with balanced emotions"
 
-    def _get_distilroberta_analysis(self, predictions: List[Dict]) -> str:
+    def _get_distilroberta_analysis(self, predictions: List[Dict], language: str) -> str:
         """Generate a detailed analysis of the emotions detected by DistilRoBERTa."""
         top_emotions = predictions[:3]  # Get top 3 emotions
-        analysis = f"Primary emotion: {top_emotions[0]['label']} "
-        analysis += f"({top_emotions[0]['score']:.2f})"
         
-        if len(top_emotions) > 1:
-            secondary_emotions = []
-            for e in top_emotions[1:]:
-                secondary_emotions.append(f"{e['label']} ({e['score']:.2f})")
-            analysis += f"\nSecondary emotions: {', '.join(secondary_emotions)}"
+        if language == 'en':
+            analysis = f"Primary emotion: {top_emotions[0]['label']} "
+            analysis += f"({top_emotions[0]['score']:.2f})"
+            
+            if len(top_emotions) > 1:
+                secondary_emotions = []
+                for e in top_emotions[1:]:
+                    secondary_emotions.append(f"{e['label']} ({e['score']:.2f})")
+                analysis += f"\nSecondary emotions: {', '.join(secondary_emotions)}"
+        else:
+            analysis = f"Emoție principală: {top_emotions[0]['label']} "
+            analysis += f"({top_emotions[0]['score']:.2f})"
+            
+            if len(top_emotions) > 1:
+                secondary_emotions = []
+                for e in top_emotions[1:]:
+                    secondary_emotions.append(f"{e['label']} ({e['score']:.2f})")
+                analysis += f"\nEmoții secundare: {', '.join(secondary_emotions)}"
         
         return analysis

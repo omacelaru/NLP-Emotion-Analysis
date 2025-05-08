@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from app.core.analyzer import EmotionAnalyzer
-from app.utils.config import APP_TITLE, APP_DESCRIPTION
+from app.config import APP_TITLE, APP_DESCRIPTION
 from app.utils.visualizations import (
     create_emotion_wheel,
     create_detailed_scores_chart,
@@ -14,14 +14,21 @@ from app.utils.visualizations import (
 
 # Page configuration must be the first Streamlit command
 st.set_page_config(
-    page_title=APP_TITLE,
+    page_title=APP_TITLE['en'],
     page_icon="😊",
     layout="wide"
 )
 
+# Language selection
+language = st.sidebar.selectbox(
+    "Select Language / Selectează Limba",
+    options=['en', 'ro'],
+    format_func=lambda x: 'English' if x == 'en' else 'Română'
+)
+
 # Main content
-st.title(APP_TITLE)
-st.markdown(APP_DESCRIPTION)
+st.title(APP_TITLE[language])
+st.markdown(APP_DESCRIPTION[language])
 
 # Initialize analyzer only when needed
 @st.cache_resource
@@ -29,48 +36,48 @@ def get_analyzer():
     return EmotionAnalyzer()
 
 # Text input
-st.markdown("### Enter Text for Analysis")
+st.markdown("### " + ("Enter Text for Analysis" if language == 'en' else "Introduceți Textul pentru Analiză"))
 text = st.text_area(
     "",
     height=200,
-    placeholder="Type or paste your text here..."
+    placeholder="Type or paste your text here..." if language == 'en' else "Scrieți sau lipiți textul aici..."
 )
 
 # Analysis button
-if st.button("Analyze Text", use_container_width=True):
+if st.button("Analyze Text" if language == 'en' else "Analizează Textul", use_container_width=True):
     if text:
-        with st.spinner("Initializing models and analyzing text..."):
+        with st.spinner("Initializing models and analyzing text..." if language == 'en' else "Se inițializează modelele și se analizează textul..."):
             try:
                 # Get analyzer instance (will be cached)
                 analyzer = get_analyzer()
-                results = analyzer.analyze_text(text)
+                results = analyzer.analyze_text(text, language)
                 
                 # Display results for each model
                 for model_key, result in results.items():
-                    st.markdown(f"### {result['model']} Analysis")
+                    st.markdown(f"### {result['model']} " + ("Analysis" if language == 'en' else "Analiză"))
                     
                     # Create two columns for metrics
                     col1, col2 = st.columns(2)
                     
                     with col1:
                         st.metric(
-                            "Dominant Emotion",
+                            "Dominant Emotion" if language == 'en' else "Emoție Dominantă",
                             result['emotions']['dominant_emotion']
                         )
                     
                     with col2:
                         st.metric(
-                            "Intensity",
+                            "Intensity" if language == 'en' else "Intensitate",
                             f"{result['emotions']['intensity']:.2f}"
                         )
                     
                     # Display analysis in a container
                     with st.container():
-                        st.markdown("#### Analysis")
+                        st.markdown("#### " + ("Analysis" if language == 'en' else "Analiză"))
                         st.info(result['emotions']['analysis'])
                     
                     # Display visualizations
-                    st.markdown("#### Visual Analysis")
+                    st.markdown("#### " + ("Visual Analysis" if language == 'en' else "Analiză Vizuală"))
                     
                     if model_key == 'vader':
                         # VADER specific visualizations
@@ -94,7 +101,7 @@ if st.button("Analyze Text", use_container_width=True):
                         st.plotly_chart(
                             create_emotion_wheel(
                                 result['emotions']['scores'],
-                                f"{result['model']} Emotion Distribution"
+                                f"{result['model']} " + ("Emotion Distribution" if language == 'en' else "Distribuția Emoțiilor")
                             ),
                             use_container_width=True
                         )
@@ -102,19 +109,19 @@ if st.button("Analyze Text", use_container_width=True):
                         st.plotly_chart(
                             create_detailed_scores_chart(
                                 result['emotions']['scores'],
-                                f"{result['model']} Detailed Scores"
+                                f"{result['model']} " + ("Detailed Scores" if language == 'en' else "Scoruri Detaliate")
                             ),
                             use_container_width=True
                         )
                 
                 # Display comparison chart
-                st.markdown("### Model Comparison")
+                st.markdown("### " + ("Model Comparison" if language == 'en' else "Comparare Modele"))
                 st.plotly_chart(
                     create_comparison_chart(list(results.values())),
                     use_container_width=True
                 )
                 
             except Exception as e:
-                st.error(f"Error analyzing text: {str(e)}")
+                st.error(f"Error analyzing text: {str(e)}" if language == 'en' else f"Eroare la analizarea textului: {str(e)}")
     else:
-        st.warning("Please enter some text for analysis.")
+        st.warning("Please enter some text for analysis." if language == 'en' else "Vă rugăm să introduceți text pentru analiză.")

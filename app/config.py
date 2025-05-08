@@ -3,40 +3,75 @@ import plotly.graph_objects as go
 
 # Model configurations
 MODEL_CONFIGS = {
-    'distilroberta': {
-        'name': 'DistilRoBERTa',
+    'distilroberta_en': {
+        'name': 'DistilRoBERTa (English)',
         'model_id': 'j-hartmann/emotion-english-distilroberta-base',
-        'type': 'emotion'
+        'type': 'emotion',
+        'language': 'en'
+    },
+    'distilroberta_ro': {
+        'name': 'DistilRoBERTa (Romanian)',
+        'model_id': 'dumitrescustefan/bert-base-romanian-cased-v1',
+        'type': 'emotion',
+        'language': 'ro'
     },
     'vader': {
         'name': 'VADER',
-        'type': 'sentiment'
+        'type': 'sentiment',
+        'language': 'en'
     }
 }
 
 # Emotion labels
 EMOTION_LABELS = {
-    'joy': 'Joy',
-    'sadness': 'Sadness',
-    'anger': 'Anger',
-    'fear': 'Fear',
-    'surprise': 'Surprise',
-    'neutral': 'Neutral',
-    'love': 'Love',
-    'disgust': 'Disgust',
-    'optimism': 'Optimism',
-    'pessimism': 'Pessimism',
-    'trust': 'Trust',
-    'anticipation': 'Anticipation'
+    'en': {
+        'joy': 'Joy',
+        'sadness': 'Sadness',
+        'anger': 'Anger',
+        'fear': 'Fear',
+        'surprise': 'Surprise',
+        'neutral': 'Neutral',
+        'love': 'Love',
+        'disgust': 'Disgust',
+        'optimism': 'Optimism',
+        'pessimism': 'Pessimism',
+        'trust': 'Trust',
+        'anticipation': 'Anticipation'
+    },
+    'ro': {
+        'bucurie': 'Bucurie',
+        'tristete': 'Tristețe',
+        'furie': 'Furie',
+        'frica': 'Frică',
+        'surpriza': 'Surpriză',
+        'neutru': 'Neutru',
+        'iubire': 'Iubire',
+        'dezgust': 'Dezgust',
+        'optimism': 'Optimism',
+        'pesimism': 'Pesimism',
+        'incredere': 'Încredere',
+        'anticipare': 'Anticipare'
+    }
 }
 
 # App settings
-APP_TITLE = "Emotion Analysis"
-APP_DESCRIPTION = """
+APP_TITLE = {
+    'en': "Emotion Analysis",
+    'ro': "Analiză Emoțională"
+}
+
+APP_DESCRIPTION = {
+    'en': """
 This application analyzes emotions in text using natural language processing models.
 You can enter text directly or upload a file for analysis.
 The analysis is performed using DistilRoBERTa for detailed emotion detection and VADER for sentiment analysis.
+""",
+    'ro': """
+Această aplicație analizează emoțiile din text folosind modele de procesare a limbajului natural.
+Puteți introduce text direct sau încărca un fișier pentru analiză.
+Analiza este realizată folosind DistilRoBERTa pentru detectarea detaliată a emoțiilor și VADER pentru analiza sentimentelor.
 """
+}
 
 # Visualization settings
 CHART_HEIGHT = 400
