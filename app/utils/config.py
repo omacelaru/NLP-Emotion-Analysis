@@ -1,15 +1,38 @@
 # Model configurations
 MODEL_CONFIGS = {
+    'distilroberta': {
+        'name': 'DistilRoBERTa',
+        'model_id': 'j-hartmann/emotion-english-distilroberta-base',
+        'type': 'emotion'
+    },
     'vader': {
-        'name': 'VADER'
+        'name': 'VADER',
+        'type': 'sentiment'
     }
+}
+
+# Emotion labels
+EMOTION_LABELS = {
+    'joy': 'Joy',
+    'sadness': 'Sadness',
+    'anger': 'Anger',
+    'fear': 'Fear',
+    'surprise': 'Surprise',
+    'neutral': 'Neutral',
+    'love': 'Love',
+    'disgust': 'Disgust',
+    'optimism': 'Optimism',
+    'pessimism': 'Pessimism',
+    'trust': 'Trust',
+    'anticipation': 'Anticipation'
 }
 
 # Application settings
 APP_TITLE = "Emotion Analysis"
 APP_DESCRIPTION = """
-This application analyzes emotions in text using VADER sentiment analysis.
-VADER is a lexicon and rule-based sentiment analysis tool specifically attuned to sentiments expressed in social media.
+This application analyzes emotions in text using natural language processing models.
+You can enter text directly or upload a file for analysis.
+The analysis is performed using DistilRoBERTa for detailed emotion detection and VADER for sentiment analysis.
 """
 
 # Visualization settings

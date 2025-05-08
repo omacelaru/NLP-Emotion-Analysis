@@ -1,95 +1,36 @@
 from typing import Dict, List
 
 import plotly.graph_objects as go
+import numpy as np
 
 from app.utils.config import CHART_HEIGHT, CHART_WIDTH
 
 
 def create_emotion_wheel(emotions: Dict[str, float], title: str) -> go.Figure:
     """Create a polar plot for the emotion wheel."""
-    # Define emotion categories and their colors
-    emotion_categories = {
-        'Positive': ['joy', 'trust', 'anticipation'],
-        'Negative': ['anger', 'disgust', 'fear', 'sadness'],
-        'Neutral': ['neutral']
-    }
-
-    colors = {
-        'Positive': '#2ecc71',  # Green
-        'Negative': '#e74c3c',  # Red
-        'Neutral': '#3498db'  # Blue
-    }
-
     fig = go.Figure()
 
-    # Create a trace for each category
-    for category, emotion_list in emotion_categories.items():
-        # Calculate scores for this category
-        category_scores = []
-        for emotion in emotion_list:
-            if emotion == 'joy':
-                score = emotions.get('pos', 0)
-            elif emotion == 'trust':
-                score = (emotions.get('pos', 0) + emotions.get('compound', 0)) / 2
-            elif emotion == 'anticipation':
-                score = emotions.get('compound', 0)
-            elif emotion == 'anger':
-                score = emotions.get('neg', 0)
-            elif emotion == 'disgust':
-                score = emotions.get('neg', 0)
-            elif emotion == 'fear':
-                score = emotions.get('neg', 0)
-            elif emotion == 'sadness':
-                score = emotions.get('neg', 0)
-            else:  # neutral
-                score = emotions.get('neu', 0)
-            category_scores.append(score)
+    # Convert emotions to polar coordinates
+    theta = np.linspace(0, 2 * np.pi, len(emotions), endpoint=False)
+    r = list(emotions.values())
 
-        # Add trace for this category
-        fig.add_trace(go.Scatterpolar(
-            r=category_scores,
-            theta=emotion_list,
-            fill='toself',
-            name=category,
-            line_color=colors[category],
-            fillcolor=colors[category]
-        ))
+    fig.add_trace(go.Scatterpolar(
+        r=r,
+        theta=list(emotions.keys()),
+        fill='toself',
+        name=title
+    ))
 
     fig.update_layout(
         polar=dict(
             radialaxis=dict(
                 visible=True,
-                range=[0, 1],
-                showticklabels=True,
-                ticks='outside',
-                tickfont=dict(size=12),
-                gridcolor='lightgray'
-            ),
-            angularaxis=dict(
-                showticklabels=True,
-                tickfont=dict(size=12),
-                gridcolor='lightgray'
-            ),
-            bgcolor='white'
-        ),
+                range=[0, 1]
+            )),
         showlegend=True,
-        title=dict(
-            text=title,
-            font=dict(size=20, color='black'),
-            x=0.5,
-            y=0.95
-        ),
-        height=CHART_HEIGHT,
-        width=CHART_WIDTH,
-        paper_bgcolor='white',
-        plot_bgcolor='white',
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5
-        )
+        title=title,
+        height=400,
+        width=800
     )
 
     return fig
@@ -97,56 +38,23 @@ def create_emotion_wheel(emotions: Dict[str, float], title: str) -> go.Figure:
 
 def create_detailed_scores_chart(emotions: Dict[str, float], title: str) -> go.Figure:
     """Create a bar chart for detailed emotion scores."""
-    # Map VADER scores to detailed emotions
-    detailed_emotions = {
-        'Positive': emotions.get('pos', 0),
-        'Negative': emotions.get('neg', 0),
-        'Neutral': emotions.get('neu', 0),
-        'Compound': emotions.get('compound', 0)
-    }
-
-    # Create color gradient based on values
-    colors = ['#e74c3c' if v < 0 else '#2ecc71' for v in detailed_emotions.values()]
-
     fig = go.Figure()
 
     fig.add_trace(go.Bar(
-        x=list(detailed_emotions.keys()),
-        y=list(detailed_emotions.values()),
-        text=[f"{score:.2f}" for score in detailed_emotions.values()],
+        x=list(emotions.keys()),
+        y=list(emotions.values()),
+        text=[f"{score:.2f}" for score in emotions.values()],
         textposition='auto',
-        marker_color=colors,
-        marker_line_color='black',
-        marker_line_width=1,
-        opacity=0.8
     ))
 
     fig.update_layout(
-        title=dict(
-            text=title,
-            font=dict(size=20, color='black'),
-            x=0.5,
-            y=0.95
-        ),
-        xaxis=dict(
-            title="Emotions",
-            titlefont=dict(size=14),
-            tickfont=dict(size=12),
-            gridcolor='lightgray'
-        ),
-        yaxis=dict(
-            title="Score",
-            titlefont=dict(size=14),
-            tickfont=dict(size=12),
-            range=[-1, 1],
-            gridcolor='lightgray'
-        ),
-        height=CHART_HEIGHT,
-        width=CHART_WIDTH,
-        paper_bgcolor='white',
-        plot_bgcolor='white',
-        showlegend=False,
-        bargap=0.3
+        title=title,
+        xaxis_title="Emotions",
+        yaxis_title="Score",
+        yaxis=dict(range=[0, 1]),
+        height=400,
+        width=800,
+        showlegend=False
     )
 
     return fig
@@ -159,22 +67,26 @@ def create_comparison_chart(results: List[Dict]) -> go.Figure:
     # Get all unique emotions across all models
     all_emotions = set()
     for result in results:
-        if isinstance(result['emotions'], list):
-            all_emotions.update(e['label'] for e in result['emotions'])
+        if 'scores' in result['emotions']:
+            all_emotions.update(result['emotions']['scores'].keys())
         else:
-            all_emotions.update(result['emotions'].keys())
+            all_emotions.update(['pos', 'neg', 'neu'])
 
     # Create a bar for each model and emotion
     for result in results:
         model_name = result['model']
         emotions = result['emotions']
 
-        if isinstance(emotions, list):
+        if 'scores' in emotions:
             # DistilRoBERTa format
-            emotion_dict = {e['label']: e['score'] for e in emotions}
+            emotion_dict = emotions['scores']
         else:
             # VADER format
-            emotion_dict = emotions
+            emotion_dict = {
+                'pos': emotions['pos'],
+                'neg': emotions['neg'],
+                'neu': emotions['neu']
+            }
 
         # Add scores for all emotions, using 0 for missing ones
         scores = [emotion_dict.get(emotion, 0) for emotion in all_emotions]
@@ -193,8 +105,8 @@ def create_comparison_chart(results: List[Dict]) -> go.Figure:
         yaxis_title="Score",
         barmode='group',
         showlegend=True,
-        height=CHART_HEIGHT,
-        width=CHART_WIDTH,
+        height=400,
+        width=800,
         yaxis=dict(range=[0, 1])
     )
 
@@ -220,8 +132,8 @@ def create_summary_table(results: List[Dict]) -> List[Dict]:
     return data
 
 
-def create_sentiment_gauge(compound_score):
-    """Create a gauge chart for the overall sentiment score."""
+def create_sentiment_gauge(compound_score: float) -> go.Figure:
+    """Create a gauge chart for sentiment score."""
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=compound_score,
@@ -241,62 +153,32 @@ def create_sentiment_gauge(compound_score):
                 'value': compound_score
             }
         },
-        title={'text': "Overall Sentiment Score"}
+        title={'text': "Sentiment Score"}
     ))
 
     fig.update_layout(
-        height=300,
-        margin=dict(l=20, r=20, t=50, b=20),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)"
+        height=400,
+        margin=dict(l=20, r=20, t=50, b=20)
     )
+
     return fig
 
 
-def create_sentiment_breakdown(pos, neu, neg):
-    """Create a stacked bar chart for sentiment breakdown."""
-    fig = go.Figure()
-
-    # Add bars for each sentiment
-    fig.add_trace(go.Bar(
-        name='Positive',
-        y=['Sentiment'],
-        x=[pos],
-        orientation='h',
-        marker_color='green'
-    ))
-
-    fig.add_trace(go.Bar(
-        name='Neutral',
-        y=['Sentiment'],
-        x=[neu],
-        orientation='h',
-        marker_color='gray'
-    ))
-
-    fig.add_trace(go.Bar(
-        name='Negative',
-        y=['Sentiment'],
-        x=[neg],
-        orientation='h',
-        marker_color='red'
-    ))
+def create_sentiment_breakdown(pos: float, neu: float, neg: float) -> go.Figure:
+    """Create a pie chart for sentiment breakdown."""
+    fig = go.Figure(data=[go.Pie(
+        labels=['Positive', 'Neutral', 'Negative'],
+        values=[pos, neu, neg],
+        hole=.3,
+        marker_colors=['green', 'gray', 'red']
+    )])
 
     fig.update_layout(
-        barmode='stack',
-        height=150,
-        margin=dict(l=20, r=20, t=20, b=20),
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5
-        ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)"
+        title="Sentiment Breakdown",
+        height=400,
+        margin=dict(l=20, r=20, t=50, b=20)
     )
+
     return fig
 
 

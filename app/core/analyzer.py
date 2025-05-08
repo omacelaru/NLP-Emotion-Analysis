@@ -1,57 +1,129 @@
-from typing import Dict
-
+from typing import Dict, List, Union
+import logging
+from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from app.utils.config import MODEL_CONFIGS
+from app.utils.config import MODEL_CONFIGS, EMOTION_LABELS
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class EmotionAnalyzer:
-    """Class for analyzing emotions in text using VADER."""
+    """Class for analyzing emotions in text using both VADER and DistilRoBERTa."""
 
     def __init__(self):
-        """Initialize the emotion analyzer with VADER."""
-        self.vader = SentimentIntensityAnalyzer()
+        """Initialize the emotion analyzers with VADER and DistilRoBERTa."""
+        try:
+            # Initialize VADER
+            self.vader = SentimentIntensityAnalyzer()
+            
+            # Initialize DistilRoBERTa
+            model_id = MODEL_CONFIGS['distilroberta']['model_id']
+            self.distilroberta = pipeline(
+                "text-classification",
+                model=model_id,
+                return_all_scores=True
+            )
+            logger.info("Successfully initialized both emotion analyzers")
+        except Exception as e:
+            logger.error(f"Error initializing emotion analyzers: {str(e)}")
+            raise
 
     def analyze_text(self, text: str) -> Dict:
-        """Analyze text using VADER model and provide detailed emotion analysis."""
-        # Get base VADER scores
-        base_scores = self.vader.polarity_scores(text)
+        """Analyze text using both VADER and DistilRoBERTa models."""
+        if not text or not isinstance(text, str):
+            raise ValueError("Input text must be a non-empty string")
 
-        # Calculate additional emotion metrics
-        compound_score = base_scores['compound']
-        positive_score = base_scores['pos']
-        negative_score = base_scores['neg']
-        neutral_score = base_scores['neu']
+        try:
+            # Get VADER analysis
+            vader_result = self._analyze_vader(text)
+            
+            # Get DistilRoBERTa analysis
+            distil_result = self._analyze_distilroberta(text)
+            
+            return {
+                'vader': vader_result,
+                'distilroberta': distil_result
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing text: {str(e)}")
+            raise
 
-        # Determine dominant emotion
-        if compound_score >= 0.05:
-            dominant_emotion = "Positive"
-        elif compound_score <= -0.05:
-            dominant_emotion = "Negative"
-        else:
-            dominant_emotion = "Neutral"
+    def _analyze_vader(self, text: str) -> Dict:
+        """Analyze text using VADER model."""
+        try:
+            # Get base VADER scores
+            base_scores = self.vader.polarity_scores(text)
 
-        # Calculate intensity
-        intensity = abs(compound_score)
+            # Calculate additional emotion metrics
+            compound_score = base_scores['compound']
+            positive_score = base_scores['pos']
+            negative_score = base_scores['neg']
+            neutral_score = base_scores['neu']
 
-        # Create complete emotions dictionary
-        emotions = {
-            'pos': positive_score,
-            'neg': negative_score,
-            'neu': neutral_score,
-            'compound': compound_score,
-            'dominant_emotion': dominant_emotion,
-            'intensity': intensity,
-            'analysis': self._get_emotion_analysis(compound_score, positive_score, negative_score)
-        }
+            # Determine dominant emotion
+            if compound_score >= 0.05:
+                dominant_emotion = "Positive"
+            elif compound_score <= -0.05:
+                dominant_emotion = "Negative"
+            else:
+                dominant_emotion = "Neutral"
 
-        return {
-            'model': MODEL_CONFIGS['vader']['name'],
-            'emotions': emotions
-        }
+            # Calculate intensity
+            intensity = abs(compound_score)
+
+            return {
+                'model': MODEL_CONFIGS['vader']['name'],
+                'emotions': {
+                    'pos': positive_score,
+                    'neg': negative_score,
+                    'neu': neutral_score,
+                    'compound': compound_score,
+                    'dominant_emotion': dominant_emotion,
+                    'intensity': intensity,
+                    'analysis': self._get_emotion_analysis(compound_score, positive_score, negative_score)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error in VADER analysis: {str(e)}")
+            raise
+
+    def _analyze_distilroberta(self, text: str) -> Dict:
+        """Analyze text using DistilRoBERTa model."""
+        try:
+            # Get predictions from DistilRoBERTa
+            predictions = self.distilroberta(text)[0]
+            
+            # Sort predictions by score
+            sorted_predictions = sorted(predictions, key=lambda x: x['score'], reverse=True)
+            
+            # Get dominant emotion
+            dominant_emotion = sorted_predictions[0]['label']
+            
+            # Calculate intensity (using the highest score)
+            intensity = sorted_predictions[0]['score']
+            
+            # Create detailed emotion scores
+            emotion_scores = {
+                pred['label']: pred['score'] for pred in sorted_predictions
+            }
+            
+            return {
+                'model': MODEL_CONFIGS['distilroberta']['name'],
+                'emotions': {
+                    'scores': emotion_scores,
+                    'dominant_emotion': dominant_emotion,
+                    'intensity': intensity,
+                    'analysis': self._get_distilroberta_analysis(sorted_predictions)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error in DistilRoBERTa analysis: {str(e)}")
+            raise
 
     def _get_emotion_analysis(self, compound: float, positive: float, negative: float) -> str:
-        """Generate a detailed analysis of the emotions detected."""
+        """Generate a detailed analysis of the emotions detected by VADER."""
         if compound >= 0.05:
             if positive > 0.5:
                 return "Strong positive sentiment with high enthusiasm"
@@ -64,3 +136,17 @@ class EmotionAnalyzer:
                 return "Moderate negative sentiment"
         else:
             return "Neutral sentiment with balanced emotions"
+
+    def _get_distilroberta_analysis(self, predictions: List[Dict]) -> str:
+        """Generate a detailed analysis of the emotions detected by DistilRoBERTa."""
+        top_emotions = predictions[:3]  # Get top 3 emotions
+        analysis = f"Primary emotion: {top_emotions[0]['label']} "
+        analysis += f"({top_emotions[0]['score']:.2f})"
+        
+        if len(top_emotions) > 1:
+            secondary_emotions = []
+            for e in top_emotions[1:]:
+                secondary_emotions.append(f"{e['label']} ({e['score']:.2f})")
+            analysis += f"\nSecondary emotions: {', '.join(secondary_emotions)}"
+        
+        return analysis
