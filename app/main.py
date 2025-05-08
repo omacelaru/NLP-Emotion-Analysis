@@ -23,12 +23,10 @@ st.set_page_config(
 st.title(APP_TITLE)
 st.markdown(APP_DESCRIPTION)
 
-# Initialize analyzer
-try:
-    analyzer = EmotionAnalyzer()
-except Exception as e:
-    st.error(f"Error initializing emotion analyzer: {str(e)}")
-    st.stop()
+# Initialize analyzer only when needed
+@st.cache_resource
+def get_analyzer():
+    return EmotionAnalyzer()
 
 # Text input
 st.markdown("### Enter Text for Analysis")
@@ -41,8 +39,10 @@ text = st.text_area(
 # Analysis button
 if st.button("Analyze Text", use_container_width=True):
     if text:
-        with st.spinner("Analyzing text with both models..."):
+        with st.spinner("Initializing models and analyzing text..."):
             try:
+                # Get analyzer instance (will be cached)
+                analyzer = get_analyzer()
                 results = analyzer.analyze_text(text)
                 
                 # Display results for each model
