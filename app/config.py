@@ -21,8 +21,9 @@ MODEL_CONFIGS = {
         'language': 'en'
     },
     'nicupiticu': {
-        'enabled': True,
+        'name': 'Nicupiticu',
         'model_id': 'app/models/nicupiticu/nicupiticu_model.pt',
+        'type': 'emotion',
         'language': 'ro'
     }
 }

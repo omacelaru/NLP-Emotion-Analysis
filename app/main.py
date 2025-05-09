@@ -85,7 +85,8 @@ if st.button("Analyze Text" if language == 'en' else "Analizează Textul", use_c
                         with col1:
                             st.plotly_chart(
                                 create_sentiment_gauge(result['emotions']['compound']),
-                                use_container_width=True
+                                use_container_width=True,
+                                key=f"gauge_{model_key}"
                             )
                         with col2:
                             st.plotly_chart(
@@ -94,7 +95,8 @@ if st.button("Analyze Text" if language == 'en' else "Analizează Textul", use_c
                                     result['emotions']['neu'],
                                     result['emotions']['neg']
                                 ),
-                                use_container_width=True
+                                use_container_width=True,
+                                key=f"breakdown_{model_key}"
                             )
                     else:
                         # DistilRoBERTa specific visualizations
@@ -103,7 +105,8 @@ if st.button("Analyze Text" if language == 'en' else "Analizează Textul", use_c
                                 result['emotions']['scores'],
                                 f"{result['model']} " + ("Emotion Distribution" if language == 'en' else "Distribuția Emoțiilor")
                             ),
-                            use_container_width=True
+                            use_container_width=True,
+                            key=f"wheel_{model_key}"
                         )
                         
                         st.plotly_chart(
@@ -111,14 +114,16 @@ if st.button("Analyze Text" if language == 'en' else "Analizează Textul", use_c
                                 result['emotions']['scores'],
                                 f"{result['model']} " + ("Detailed Scores" if language == 'en' else "Scoruri Detaliate")
                             ),
-                            use_container_width=True
+                            use_container_width=True,
+                            key=f"scores_{model_key}"
                         )
                 
                 # Display comparison chart
                 st.markdown("### " + ("Model Comparison" if language == 'en' else "Comparare Modele"))
                 st.plotly_chart(
                     create_comparison_chart(list(results.values())),
-                    use_container_width=True
+                    use_container_width=True,
+                    key="comparison_chart"
                 )
                 
             except Exception as e:

@@ -24,13 +24,11 @@ class NicupiticuPredictor:
     def load_model(self, model_path):
         try:
             # Load saved model and vocabulary
-            checkpoint = torch.load(model_path, map_location=self.device)
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
             
             # Initialize model with same architecture
             self.model = NicupiticuModel(
                 vocab_size=len(checkpoint['vocab']),
-                embedding_dim=200,
-                hidden_dim=256,
                 num_classes=len(checkpoint['label_encoder'].classes_)
             ).to(self.device)
             
@@ -129,13 +127,34 @@ if __name__ == '__main__':
     main()
 
 class NicupiticuModel(nn.Module):
-    def __init__(self, num_labels=12):
+    def __init__(self, vocab_size, embedding_dim=200, hidden_dim=256, num_classes=12, num_layers=2, dropout=0.5):
         super(NicupiticuModel, self).__init__()
-        self.num_labels = num_labels
-        self.linear = nn.Linear(768, num_labels)
+        self.hidden_dim = hidden_dim
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.lstm = nn.LSTM(
+            embedding_dim, 
+            hidden_dim, 
+            num_layers=num_layers, 
+            batch_first=True, 
+            dropout=dropout if num_layers > 1 else 0,
+            bidirectional=True
+        )
+        self.dropout = nn.Dropout(dropout)
+        self.fc1 = nn.Linear(hidden_dim * 2, hidden_dim)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_dim, num_classes)
         
     def forward(self, x):
-        return self.linear(x)
+        embedded = self.embedding(x)
+        lstm_out, _ = self.lstm(embedded)
+        # Use both directions of LSTM
+        last_hidden = torch.cat((lstm_out[:, -1, :self.hidden_dim], lstm_out[:, 0, self.hidden_dim:]), dim=1)
+        x = self.dropout(last_hidden)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        output = self.fc2(x)
+        return output
 
 def predict_emotions(text: str) -> list:
     """Predict emotions using the Nicupiticu model."""
@@ -147,7 +166,14 @@ def predict_emotions(text: str) -> list:
         inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
         
         # Load model
-        model = NicupiticuModel()
+        model = NicupiticuModel(
+            vocab_size=len(tokenizer.vocab),
+            embedding_dim=tokenizer.embedding_dim,
+            hidden_dim=256,
+            num_classes=12,
+            num_layers=2,
+            dropout=0.5
+        )
         model.load_state_dict(torch.load("app/models/nicupiticu/nicupiticu_model.pt"))
         model.eval()
         
