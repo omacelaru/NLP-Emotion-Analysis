@@ -19,6 +19,11 @@ MODEL_CONFIGS = {
         'name': 'VADER',
         'type': 'sentiment',
         'language': 'en'
+    },
+    'nicupiticu': {
+        'enabled': True,
+        'model_id': 'app/models/nicupiticu/nicupiticu_model.pt',
+        'language': 'ro'
     }
 }
 
@@ -64,12 +69,12 @@ APP_DESCRIPTION = {
     'en': """
 This application analyzes emotions in text using natural language processing models.
 You can enter text directly or upload a file for analysis.
-The analysis is performed using DistilRoBERTa for detailed emotion detection and VADER for sentiment analysis.
+The analysis is performed using DistilRoBERTa for English text and Romanian BERT for Romanian text.
 """,
     'ro': """
 Această aplicație analizează emoțiile din text folosind modele de procesare a limbajului natural.
 Puteți introduce text direct sau încărca un fișier pentru analiză.
-Analiza este realizată folosind DistilRoBERTa pentru detectarea detaliată a emoțiilor și VADER pentru analiza sentimentelor.
+Analiza este realizată folosind DistilRoBERTa pentru textul în engleză și Romanian BERT pentru textul în română.
 """
 }
 

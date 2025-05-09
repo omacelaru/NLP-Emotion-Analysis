@@ -1,0 +1,46 @@
+# Exemple de texte pentru testarea modelului Nicupiticu
+
+# Text pozitiv
+Sunt foarte fericit că am primit vestea bună! Abia aștept să încep noul proiect și sunt plin de optimism pentru viitor.
+
+# Text negativ
+Mi-e foarte trist că nu am putut să ajung la eveniment. Mă simt dezamăgit și puțin pesimist legat de situație.
+
+# Text neutru
+Astăzi este o zi normală. Am mers la muncă, am făcut cumpărăturile necesare și am pregătit cina.
+
+# Text complex cu multiple emoții
+Sunt surprins și puțin speriat de vestea primită, dar în același timp am încredere că totul va fi bine. Chiar dacă situația este neașteptată, sunt optimist că vom găsi o soluție.
+
+# Text cu bucurie
+Ce zi minunată! Am primit vestea că am fost acceptat la facultatea dorită și sunt atât de fericit! Abia aștept să încep această nouă aventură.
+
+# Text cu tristețe
+Mi-e dor de tine și nu știu ce să fac. Fiecare zi fără tine este mai grea decât cea anterioară. Mă simt atât de singur și de trist.
+
+# Text cu furie
+Cum îndrăznești să-mi vorbești așa! Sunt atât de furios că nu pot să cred ce aud. Comportamentul tău este complet inacceptabil!
+
+# Text cu frică
+Nu știu ce o să se întâmple cu mine. Mă simt speriat și nesigur de viitor. Totul pare atât de neclar și de amenințător.
+
+# Text cu surpriză
+Nu-mi vine să cred ce am văzut! Sunt complet uimit de această dezvoltare neașteptată. Nu știam că este posibil așa ceva!
+
+# Text cu iubire
+Te iubesc din toată inima! Fiecare moment petrecut cu tine este o binecuvântare. Ești persoana care îmi face viața completă.
+
+# Text cu dezgust
+Mi-e scârbă de comportamentul tău! Nu pot să cred că ai putut să faci așa ceva. Este complet dezgustător și inacceptabil.
+
+# Text cu optimism
+Totul va fi bine! Chiar dacă trecem prin momente grele, sunt sigur că vom reuși să depășim orice obstacol. Viitorul este luminos!
+
+# Text cu pesimism
+Nu mai am speranță... Totul pare să meargă prost și nu văd niciun semn că situația ar putea să se îmbunătățească. Mă simt complet copleșit.
+
+# Text cu încredere
+Am încredere în tine! Știu că vei face tot ce este necesar pentru a reuși. Ești o persoană capabilă și dedicată.
+
+# Text cu anticipare
+Abia aștept să vedem rezultatele! Sunt atât de entuziasmat să văd ce vom realiza împreună. Viitorul arată promițător! 

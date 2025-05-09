@@ -1,0 +1,46 @@
+# Test examples for the Nicupiticu model
+
+# Positive text
+I am very happy that I received the good news! I can't wait to start the new project and I am full of optimism for the future.
+
+# Negative text
+I am very sad that I couldn't make it to the event. I feel disappointed and a bit pessimistic about the situation.
+
+# Neutral text
+Today is a normal day. I went to work, did the necessary shopping, and prepared dinner.
+
+# Complex text with multiple emotions
+I am surprised and a bit scared by the news I received, but at the same time I trust that everything will be fine. Even though the situation is unexpected, I am optimistic that we will find a solution.
+
+# Text with joy
+What a wonderful day! I received the news that I was accepted to my desired university and I am so happy! I can't wait to start this new adventure.
+
+# Text with sadness
+I miss you and I don't know what to do. Each day without you is harder than the previous one. I feel so lonely and sad.
+
+# Text with anger
+How dare you speak to me like that! I am so angry that I can't believe what I'm hearing. Your behavior is completely unacceptable!
+
+# Text with fear
+I don't know what will happen to me. I feel scared and uncertain about the future. Everything seems so unclear and threatening.
+
+# Text with surprise
+I can't believe what I just saw! I am completely amazed by this unexpected development. I didn't know this was possible!
+
+# Text with love
+I love you with all my heart! Every moment spent with you is a blessing. You are the person who makes my life complete.
+
+# Text with disgust
+I am disgusted by your behavior! I can't believe you could do such a thing. It's completely disgusting and unacceptable.
+
+# Text with optimism
+Everything will be fine! Even though we're going through difficult times, I am sure we will overcome any obstacle. The future is bright!
+
+# Text with pessimism
+I have no hope left... Everything seems to be going wrong and I don't see any signs that the situation might improve. I feel completely overwhelmed.
+
+# Text with trust
+I trust you! I know you will do everything necessary to succeed. You are a capable and dedicated person.
+
+# Text with anticipation
+I can't wait to see the results! I am so excited to see what we will achieve together. The future looks promising! 
