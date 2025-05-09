@@ -68,14 +68,20 @@ APP_TITLE = {
 
 APP_DESCRIPTION = {
     'en': """
-This application analyzes emotions in text using natural language processing models.
-You can enter text directly or upload a file for analysis.
-The analysis is performed using DistilRoBERTa for English text and Romanian BERT for Romanian text.
+This platform provides a comprehensive emotion analysis using advanced natural language processing models. The analysis is performed using the following models:
+
+- VADER: Sentiment analysis for English text
+- DistilRoBERTa (English): Detailed emotion analysis for English text
+
+Results are presented through interactive visualizations and detailed graphs for each model.
 """,
     'ro': """
-Această aplicație analizează emoțiile din text folosind modele de procesare a limbajului natural.
-Puteți introduce text direct sau încărca un fișier pentru analiză.
-Analiza este realizată folosind DistilRoBERTa pentru textul în engleză și Romanian BERT pentru textul în română.
+Această platformă oferă o analiză complexă a emoțiilor din text folosind modele avansate de procesare a limbajului natural. Analiza este realizată prin următoarele modele:
+
+- DistilRoBERTa (Romanian): Analiză detaliată a emoțiilor pentru textul în română
+- Nicupiticu: Analiză specializată pentru textul în română
+
+Rezultatele sunt prezentate prin vizualizări interactive și grafice detaliate pentru fiecare model.
 """
 }
 
