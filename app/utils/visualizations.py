@@ -1,9 +1,7 @@
 from typing import Dict, List
 
-import plotly.graph_objects as go
 import numpy as np
-
-from app.utils.config import CHART_HEIGHT, CHART_WIDTH
+import plotly.graph_objects as go
 
 
 def create_emotion_wheel(emotions: Dict[str, float], title: str) -> go.Figure:
