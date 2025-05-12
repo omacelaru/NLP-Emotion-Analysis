@@ -9,8 +9,12 @@ from app.utils.visualizations import (
     create_detailed_scores_chart,
     create_comparison_chart,
     create_sentiment_gauge,
-    create_sentiment_breakdown
+    create_sentiment_breakdown,
+    create_emotion_complexity_heatmap,
+    create_ensemble_analysis_chart,
+    create_model_comparison_radar
 )
+
 # Page configuration
 st.set_page_config(
     page_title=APP_TITLE['en'],
@@ -18,12 +22,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
 # Custom CSS for better styling
 st.markdown("""
     <style>
-    .main {
-        padding: 2rem;
-    }
+    .main { padding: 2rem; }
     .stButton>button {
         background-color: #4CAF50;
         color: white;
@@ -47,16 +50,8 @@ st.markdown("""
         border-color: #4CAF50;
         box-shadow: 0 0 0 1px #4CAF50;
     }
-    .css-1d391kg {
-        padding: 1rem;
-    }
-    .stMarkdown {
-        padding: 1rem 0;
-    }
     </style>
 """, unsafe_allow_html=True)
-
-
 
 # Language selection with improved styling
 st.sidebar.markdown("""
@@ -157,8 +152,26 @@ if st.button(
                                 use_container_width=True,
                                 key=f"breakdown_{model_key}"
                             )
+                    elif model_key == 'ensemble':
+                        # Ensemble analysis visualizations
+                        st.plotly_chart(
+                            create_ensemble_analysis_chart(results),
+                            use_container_width=True,
+                            key="ensemble_dashboard"
+                        )
+                        
+                        # Add emotion complexity heatmap if available
+                        if 'complexity' in result['emotions']:
+                            st.plotly_chart(
+                                create_emotion_complexity_heatmap(
+                                    result['emotions']['scores'],
+                                    result['emotions']['complexity']
+                                ),
+                                use_container_width=True,
+                                key="complexity_heatmap"
+                            )
                     else:
-                        # DistilRoBERTa specific visualizations
+                        # DistilRoBERTa and BERT specific visualizations
                         st.plotly_chart(
                             create_emotion_wheel(
                                 result['emotions']['scores'],
@@ -177,8 +190,17 @@ if st.button(
                             key=f"scores_{model_key}"
                         )
                 
-                # Display comparison chart with improved styling
+                # Display model comparison visualizations
                 st.markdown(f"<h2 style='color: #4CAF50;'>" + ("Model Comparison" if language == 'en' else "Comparare Modele") + "</h2>", unsafe_allow_html=True)
+                
+                # Add radar chart for model comparison
+                st.plotly_chart(
+                    create_model_comparison_radar(list(results.values())),
+                    use_container_width=True,
+                    key="model_radar"
+                )
+                
+                # Add traditional comparison chart
                 st.plotly_chart(
                     create_comparison_chart(list(results.values())),
                     use_container_width=True,

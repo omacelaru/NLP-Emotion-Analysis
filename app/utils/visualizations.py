@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 def create_emotion_wheel(emotions: Dict[str, float], title: str) -> go.Figure:
@@ -240,4 +241,177 @@ def create_emotion_trend(scores):
             range=[0, 1]
         )
     )
+    return fig
+
+
+def create_emotion_complexity_heatmap(emotions: Dict[str, float], complexity: float) -> go.Figure:
+    """Create a heatmap showing emotion complexity and distribution."""
+    # Create a 2D grid of emotions
+    emotions_list = list(emotions.keys())
+    n_emotions = len(emotions_list)
+    grid_size = int(np.ceil(np.sqrt(n_emotions)))
+    
+    # Create a grid of emotion scores
+    grid = np.zeros((grid_size, grid_size))
+    for i, emotion in enumerate(emotions_list):
+        row = i // grid_size
+        col = i % grid_size
+        grid[row, col] = emotions[emotion]
+    
+    fig = go.Figure(data=go.Heatmap(
+        z=grid,
+        colorscale='Viridis',
+        showscale=True,
+        text=[[f"{grid[i,j]:.2f}" if grid[i,j] > 0 else "" for j in range(grid_size)] for i in range(grid_size)],
+        texttemplate="%{text}",
+        textfont={"size": 10}
+    ))
+    
+    fig.update_layout(
+        title=f"Emotion Complexity Heatmap (Complexity: {complexity:.2f})",
+        height=400,
+        width=600,
+        margin=dict(l=20, r=20, t=50, b=20)
+    )
+    
+    return fig
+
+
+def create_ensemble_analysis_chart(results: Dict) -> go.Figure:
+    """Create a comprehensive visualization of ensemble analysis results."""
+    # Create subplots
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=(
+            "Emotion Distribution",
+            "Model Confidence",
+            "Emotion Complexity",
+            "Top Emotions Comparison"
+        ),
+        specs=[
+            [{"type": "pie"}, {"type": "indicator"}],
+            [{"type": "bar"}, {"type": "bar"}]
+        ]
+    )
+    
+    # Get ensemble scores
+    ensemble_scores = results['ensemble']['emotions']['scores']
+    sorted_emotions = sorted(ensemble_scores.items(), key=lambda x: x[1], reverse=True)
+    
+    # 1. Emotion Distribution (Pie Chart)
+    fig.add_trace(
+        go.Pie(
+            labels=list(ensemble_scores.keys()),
+            values=list(ensemble_scores.values()),
+            hole=.3,
+            name="Distribution"
+        ),
+        row=1, col=1
+    )
+    
+    # 2. Model Confidence (Gauge)
+    confidence = results['ensemble']['emotions']['intensity']
+    fig.add_trace(
+        go.Indicator(
+            mode="gauge+number",
+            value=confidence,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            gauge={
+                'axis': {'range': [0, 1]},
+                'bar': {'color': "darkblue"},
+                'steps': [
+                    {'range': [0, 0.3], 'color': "red"},
+                    {'range': [0.3, 0.7], 'color': "orange"},
+                    {'range': [0.7, 1], 'color': "green"}
+                ]
+            },
+            title={'text': "Confidence"}
+        ),
+        row=1, col=2
+    )
+    
+    # 3. Emotion Complexity (Bar Chart)
+    if 'complexity' in results['ensemble']['emotions']:
+        complexity = results['ensemble']['emotions']['complexity']
+        fig.add_trace(
+            go.Bar(
+                x=['Complexity'],
+                y=[complexity],
+                name="Complexity",
+                marker_color='purple'
+            ),
+            row=2, col=1
+        )
+    
+    # 4. Top Emotions Comparison (Bar Chart)
+    top_emotions = sorted_emotions[:5]
+    fig.add_trace(
+        go.Bar(
+            x=[e[0] for e in top_emotions],
+            y=[e[1] for e in top_emotions],
+            name="Top Emotions",
+            marker_color='lightblue'
+        ),
+        row=2, col=2
+    )
+    
+    fig.update_layout(
+        height=800,
+        width=1000,
+        showlegend=True,
+        title_text="Ensemble Analysis Dashboard",
+        title_x=0.5
+    )
+    
+    return fig
+
+
+def create_model_comparison_radar(results: List[Dict]) -> go.Figure:
+    """Create a radar chart comparing multiple models' predictions."""
+    fig = go.Figure()
+    
+    # Get all unique emotions across models
+    all_emotions = set()
+    for result in results:
+        if 'scores' in result['emotions']:
+            all_emotions.update(result['emotions']['scores'].keys())
+    
+    all_emotions = sorted(list(all_emotions))
+    
+    # Add a trace for each model
+    for result in results:
+        model_name = result['model']
+        emotions = result['emotions']
+        
+        if 'scores' in emotions:
+            scores = [emotions['scores'].get(emotion, 0) for emotion in all_emotions]
+        else:
+            # Convert VADER scores to match emotion format
+            scores = [
+                emotions['pos'] if emotion == 'positive' else
+                emotions['neg'] if emotion == 'negative' else
+                emotions['neu'] if emotion == 'neutral' else 0
+                for emotion in all_emotions
+            ]
+        
+        fig.add_trace(go.Scatterpolar(
+            r=scores,
+            theta=all_emotions,
+            fill='toself',
+            name=model_name
+        ))
+    
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )
+        ),
+        showlegend=True,
+        title="Model Comparison Radar",
+        height=600,
+        width=800
+    )
+    
     return fig
