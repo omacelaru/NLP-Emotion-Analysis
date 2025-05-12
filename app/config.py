@@ -79,6 +79,7 @@ Results are presented through interactive visualizations and detailed graphs for
 Această platformă oferă o analiză complexă a emoțiilor din text folosind modele avansate de procesare a limbajului natural. Analiza este realizată prin următoarele modele:
 
 - Nicupiticu: Analiză specializată pentru textul în română
+- DistilRoBERTa (Romanian) - Analiză detaliată a emoțiilor pentru textul în română
 
 Rezultatele sunt prezentate prin vizualizări interactive și grafice detaliate pentru fiecare model.
 """
