@@ -20,9 +20,9 @@ MODEL_CONFIGS = {
         'type': 'emotion',
         'language': 'ro'
     },
-    'bert_romanian': {
-        'name': 'BERT Romanian',
-        'model_id': 'dumitrescustefan/bert-base-romanian-uncased-v1',
+    'distilroberta_ro': {
+        'name': 'DistilRoBERTa (Romanian)',
+        'model_id': 'readerbench/RoBERT-base',
         'type': 'emotion',
         'language': 'ro'
     }

@@ -3,7 +3,7 @@ import logging
 from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from app.models.nicupiticu.training.predict import NicupiticuPredictor
-from app.models.bert_romanian.model import RomanianBERTEmotionAnalyzer
+from app.models.distilroberta_ro.model import RomanianDistilRoBERTaEmotionAnalyzer
 
 from app.config import MODEL_CONFIGS, EMOTION_LABELS
 
@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 class EmotionAnalyzer:
-    """Class for analyzing emotions in text using VADER, DistilRoBERTa (English), Nicupiticu, and BERT Romanian models."""
+    """Class for analyzing emotions in text using VADER, DistilRoBERTa (English), Nicupiticu, and DistilRoBERTa Romanian models."""
 
     def __init__(self):
-        """Initialize the emotion analyzers with VADER, DistilRoBERTa (EN), Nicupiticu, and BERT Romanian."""
+        """Initialize the emotion analyzers with VADER, DistilRoBERTa (EN), Nicupiticu, and DistilRoBERTa Romanian."""
         try:
             # Initialize VADER
             self.vader = SentimentIntensityAnalyzer()
@@ -36,13 +36,13 @@ class EmotionAnalyzer:
                 logger.warning(f"Nicupiticu model not available: {str(e)}")
                 self.nicupiticu = None
 
-            # Initialize BERT Romanian model
+            # Initialize DistilRoBERTa Romanian model
             try:
-                self.bert_romanian = RomanianBERTEmotionAnalyzer()
-                logger.info("Successfully initialized BERT Romanian model")
+                self.distilroberta_ro = RomanianDistilRoBERTaEmotionAnalyzer()
+                logger.info("Successfully initialized DistilRoBERTa Romanian model")
             except Exception as e:
-                logger.warning(f"BERT Romanian model not available: {str(e)}")
-                self.bert_romanian = None
+                logger.warning(f"DistilRoBERTa Romanian model not available: {str(e)}")
+                self.distilroberta_ro = None
 
             logger.info("Successfully initialized all emotion analyzers")
         except Exception as e:
@@ -63,11 +63,11 @@ class EmotionAnalyzer:
                 # Get DistilRoBERTa analysis for English
                 results['distilroberta'] = self._analyze_distilroberta(text, self.distilroberta_en, 'en')
             else:
-                # For Romanian, use both Nicupiticu and BERT Romanian if available
+                # For Romanian, use both Nicupiticu and DistilRoBERTa Romanian if available
                 if self.nicupiticu is not None:
                     results['nicupiticu'] = self._analyze_nicupiticu(text)
-                if self.bert_romanian is not None:
-                    results['bert_romanian'] = self._analyze_bert_romanian(text)
+                if self.distilroberta_ro is not None:
+                    results['distilroberta_ro'] = self._analyze_distilroberta_ro(text)
 
             return results
         except Exception as e:
@@ -178,11 +178,11 @@ class EmotionAnalyzer:
             logger.error(f"Error in Nicupiticu analysis: {str(e)}")
             raise
 
-    def _analyze_bert_romanian(self, text: str) -> Dict:
-        """Analyze text using BERT Romanian model."""
+    def _analyze_distilroberta_ro(self, text: str) -> Dict:
+        """Analyze text using DistilRoBERTa Romanian model."""
         try:
-            # Get predictions from BERT Romanian
-            emotions, scores = self.bert_romanian.predict(text)
+            # Get predictions from DistilRoBERTa Romanian
+            emotions, scores = self.distilroberta_ro.predict(text)
 
             # Create emotion scores dictionary
             emotion_scores = dict(zip(emotions, scores))
@@ -191,16 +191,16 @@ class EmotionAnalyzer:
             sorted_emotions = sorted(emotion_scores.items(), key=lambda x: x[1], reverse=True)
 
             return {
-                'model': MODEL_CONFIGS['bert_romanian']['name'],
+                'model': MODEL_CONFIGS['distilroberta_ro']['name'],
                 'emotions': {
                     'scores': emotion_scores,
-                    'dominant_emotion': sorted_emotions[0][0] if sorted_emotions else 'neutral',
+                    'dominant_emotion': sorted_emotions[0][0] if sorted_emotions else 'neutru',
                     'intensity': sorted_emotions[0][1] if sorted_emotions else 0.0,
-                    'analysis': self._get_bert_romanian_analysis(sorted_emotions)
+                    'analysis': self._get_distilroberta_ro_analysis(sorted_emotions)
                 }
             }
         except Exception as e:
-            logger.error(f"Error in BERT Romanian analysis: {str(e)}")
+            logger.error(f"Error in DistilRoBERTa Romanian analysis: {str(e)}")
             raise
 
     def _get_emotion_analysis(self, compound: float, positive: float, negative: float) -> str:
@@ -248,8 +248,8 @@ class EmotionAnalyzer:
 
         return analysis
 
-    def _get_bert_romanian_analysis(self, sorted_emotions: List[tuple]) -> str:
-        """Generate a detailed analysis of the emotions detected by BERT Romanian."""
+    def _get_distilroberta_ro_analysis(self, sorted_emotions: List[tuple]) -> str:
+        """Generate a detailed analysis of the emotions detected by DistilRoBERTa Romanian."""
         if not sorted_emotions:
             return "Nu s-au detectat emoții clare în text."
 
