@@ -3,6 +3,7 @@ import logging
 from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from app.models.nicupiticu.training.predict import NicupiticuPredictor
+from app.models.bert_romanian.model import RomanianBERTEmotionAnalyzer
 
 from app.config import MODEL_CONFIGS, EMOTION_LABELS
 
@@ -12,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 class EmotionAnalyzer:
-    """Class for analyzing emotions in text using VADER, DistilRoBERTa (English), and Nicupiticu models."""
+    """Class for analyzing emotions in text using VADER, DistilRoBERTa (English), Nicupiticu, and BERT Romanian models."""
 
     def __init__(self):
-        """Initialize the emotion analyzers with VADER, DistilRoBERTa (EN), and Nicupiticu."""
+        """Initialize the emotion analyzers with VADER, DistilRoBERTa (EN), Nicupiticu, and BERT Romanian."""
         try:
             # Initialize VADER
             self.vader = SentimentIntensityAnalyzer()
@@ -35,13 +36,21 @@ class EmotionAnalyzer:
                 logger.warning(f"Nicupiticu model not available: {str(e)}")
                 self.nicupiticu = None
 
+            # Initialize BERT Romanian model
+            try:
+                self.bert_romanian = RomanianBERTEmotionAnalyzer()
+                logger.info("Successfully initialized BERT Romanian model")
+            except Exception as e:
+                logger.warning(f"BERT Romanian model not available: {str(e)}")
+                self.bert_romanian = None
+
             logger.info("Successfully initialized all emotion analyzers")
         except Exception as e:
             logger.error(f"Error initializing emotion analyzers: {str(e)}")
             raise
 
     def analyze_text(self, text: str, language: str = 'en') -> Dict:
-        """Analyze text using both VADER and DistilRoBERTa models."""
+        """Analyze text using available models based on language."""
         if not text or not isinstance(text, str):
             raise ValueError("Input text must be a non-empty string")
 
@@ -54,9 +63,11 @@ class EmotionAnalyzer:
                 # Get DistilRoBERTa analysis for English
                 results['distilroberta'] = self._analyze_distilroberta(text, self.distilroberta_en, 'en')
             else:
-                # For Romanian, only use Nicupiticu if available
+                # For Romanian, use both Nicupiticu and BERT Romanian if available
                 if self.nicupiticu is not None:
                     results['nicupiticu'] = self._analyze_nicupiticu(text)
+                if self.bert_romanian is not None:
+                    results['bert_romanian'] = self._analyze_bert_romanian(text)
 
             return results
         except Exception as e:
@@ -167,6 +178,31 @@ class EmotionAnalyzer:
             logger.error(f"Error in Nicupiticu analysis: {str(e)}")
             raise
 
+    def _analyze_bert_romanian(self, text: str) -> Dict:
+        """Analyze text using BERT Romanian model."""
+        try:
+            # Get predictions from BERT Romanian
+            emotions, scores = self.bert_romanian.predict(text)
+
+            # Create emotion scores dictionary
+            emotion_scores = dict(zip(emotions, scores))
+
+            # Sort emotions by score
+            sorted_emotions = sorted(emotion_scores.items(), key=lambda x: x[1], reverse=True)
+
+            return {
+                'model': MODEL_CONFIGS['bert_romanian']['name'],
+                'emotions': {
+                    'scores': emotion_scores,
+                    'dominant_emotion': sorted_emotions[0][0] if sorted_emotions else 'neutral',
+                    'intensity': sorted_emotions[0][1] if sorted_emotions else 0.0,
+                    'analysis': self._get_bert_romanian_analysis(sorted_emotions)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error in BERT Romanian analysis: {str(e)}")
+            raise
+
     def _get_emotion_analysis(self, compound: float, positive: float, negative: float) -> str:
         """Generate a detailed analysis of the emotions detected by VADER."""
         if compound >= 0.05:
@@ -199,6 +235,24 @@ class EmotionAnalyzer:
 
     def _get_nicupiticu_analysis(self, sorted_emotions: List[tuple]) -> str:
         """Generate a detailed analysis of the emotions detected by Nicupiticu."""
+        top_emotions = sorted_emotions[:3]  # Get top 3 emotions
+
+        analysis = f"Emoție principală: {top_emotions[0][0]} "
+        analysis += f"({top_emotions[0][1]:.2f})"
+
+        if len(top_emotions) > 1:
+            secondary_emotions = []
+            for emotion, score in top_emotions[1:]:
+                secondary_emotions.append(f"{emotion} ({score:.2f})")
+            analysis += f"\nEmoții secundare: {', '.join(secondary_emotions)}"
+
+        return analysis
+
+    def _get_bert_romanian_analysis(self, sorted_emotions: List[tuple]) -> str:
+        """Generate a detailed analysis of the emotions detected by BERT Romanian."""
+        if not sorted_emotions:
+            return "Nu s-au detectat emoții clare în text."
+
         top_emotions = sorted_emotions[:3]  # Get top 3 emotions
 
         analysis = f"Emoție principală: {top_emotions[0][0]} "

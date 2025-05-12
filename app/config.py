@@ -19,6 +19,12 @@ MODEL_CONFIGS = {
         'model_id': 'app/models/nicupiticu/nicupiticu_model.pt',
         'type': 'emotion',
         'language': 'ro'
+    },
+    'bert_romanian': {
+        'name': 'BERT Romanian',
+        'model_id': 'dumitrescustefan/bert-base-romanian-uncased-v1',
+        'type': 'emotion',
+        'language': 'ro'
     }
 }
 
