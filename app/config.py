@@ -9,12 +9,6 @@ MODEL_CONFIGS = {
         'type': 'emotion',
         'language': 'en'
     },
-    'distilroberta_ro': {
-        'name': 'DistilRoBERTa (Romanian)',
-        'model_id': 'dumitrescustefan/bert-base-romanian-cased-v1',
-        'type': 'emotion',
-        'language': 'ro'
-    },
     'vader': {
         'name': 'VADER',
         'type': 'sentiment',
@@ -78,7 +72,6 @@ Results are presented through interactive visualizations and detailed graphs for
     'ro': """
 Această platformă oferă o analiză complexă a emoțiilor din text folosind modele avansate de procesare a limbajului natural. Analiza este realizată prin următoarele modele:
 
-- DistilRoBERTa (Romanian): Analiză detaliată a emoțiilor pentru textul în română
 - Nicupiticu: Analiză specializată pentru textul în română
 
 Rezultatele sunt prezentate prin vizualizări interactive și grafice detaliate pentru fiecare model.
